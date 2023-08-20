@@ -1,0 +1,48 @@
+/* File that sorts the variable `$list_to_sort` and prints the sorted list in the debug output */
+@import '103-sort_list';
+
+$default-sort-order: a b c d e f g h i j k l m n o p q r s t u v w x y z !default;
+
+@function _str-compare($a, $b, $order) {
+	$a: to-lower-case($a + unquote(""));
+	$b: to-lower-case($b + unquote(""));
+
+	@for $i from 1 through min(str-length($a), str-length($b)) {
+		$char-a: str-slice($a, $i, $i);
+		$char-b: str-slice($b, $i, $i);
+
+		@if $char-a and $char-b and index($order, $char-a) != index($order, $char-b) {
+			@return index($order, $char-a) < index($order, $char-b);
+		}
+	}
+
+	@return str-length($a) < str-length($b);
+}
+
+@function quick-sort($list, $order: $default-sort-order) {
+	$less: ();
+	$equal: ();
+	$large: ();
+
+	@if length($list) > 1 {
+		$seed: nth($list, ceil(length($list) / 2));
+
+		@each $item in $list {
+			@if $item == $seed {
+				$equal: append($equal, $item, list-separator($list));
+			} @else if _str-compare($item, $seed, $order) {
+				$less: append($less, $item, list-separator($list));
+			} @else if not _str-compare($item, $seed, $order) {
+				$large: append($large, $item, list-separator($list));
+			}
+		}
+
+		@return join(join(quick-sort($less, $order), $equal), quick-sort($large, $order));
+	}
+
+	@return $list;
+}
+
+$sorted-list: quick-sort($list_to_sort, $default-sort-order);
+
+@debug "#{$sorted-list}";
